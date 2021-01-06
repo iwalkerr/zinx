@@ -7,21 +7,21 @@ import (
 )
 
 type Connection struct {
-	Conn      *net.TCPConn     // 当前链接的socket TCP套接字
-	ConnID    uint32           // 链接ID
-	isClosed  bool             // 当前链接状态
-	handleAPI ziface.HanleFunc // 当前链接所绑定的处理业务方法API
-	ExitChan  chan bool        // 告知当前链接已经退出/停止 channnel
+	Conn     *net.TCPConn   // 当前链接的socket TCP套接字
+	ConnID   uint32         // 链接ID
+	isClosed bool           // 当前链接状态
+	ExitChan chan bool      // 告知当前链接已经退出/停止 channnel
+	Router   ziface.IRouter // 该链接处理的方法
 }
 
 // 初始化链接模块方法
-func NewConnection(conn *net.TCPConn, connID uint32, callbackApi ziface.HanleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) *Connection {
 	c := &Connection{
-		Conn:      conn,
-		ConnID:    connID,
-		handleAPI: callbackApi,
-		isClosed:  false,
-		ExitChan:  make(chan bool, 1),
+		Conn:     conn,
+		ConnID:   connID,
+		Router:   router,
+		isClosed: false,
+		ExitChan: make(chan bool, 1),
 	}
 	return c
 }
@@ -35,17 +35,23 @@ func (c *Connection) StartReader() {
 	for {
 		// 读取客户端到buf中，最大512字节
 		buf := make([]byte, 512)
-		cnt, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("recv buf err", err)
 			continue
 		}
 
-		// 调用链接所绑定的handAPI
-		if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
-			fmt.Println("connID ", c.ConnID, " handle is error", err)
-			break
+		req := Request{
+			conn: c,
+			data: buf,
 		}
+
+		go func(request ziface.IRequest) {
+			c.Router.PreHandle(request)
+			c.Router.Handle(request)
+			c.Router.PostHandle(request)
+		}(&req)
+
 	}
 
 }
@@ -87,6 +93,6 @@ func (c *Connection) RemoteAddr() net.Addr {
 }
 
 // 发送数据， 将数据发送给远程的客户端
-func (c *Connection) Send() error {
+func (c *Connection) Send(data []byte) error {
 	return nil
 }
