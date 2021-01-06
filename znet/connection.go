@@ -9,10 +9,11 @@ import (
 )
 
 type Connection struct {
-	Conn       *net.TCPConn       // 当前链接的socket TCP套接字
-	ConnID     uint32             // 链接ID
-	isClosed   bool               // 当前链接状态
-	ExitChan   chan bool          // 告知当前链接已经退出/停止 channnel
+	Conn       *net.TCPConn // 当前链接的socket TCP套接字
+	ConnID     uint32       // 链接ID
+	isClosed   bool         // 当前链接状态
+	ExitChan   chan bool    // 告知当前链接已经退出/停止 channnel
+	msgChan    chan []byte
 	MsgHandler ziface.IMsgHandler // 该链接处理的方法
 }
 
@@ -23,9 +24,27 @@ func NewConnection(conn *net.TCPConn, connID uint32, handler ziface.IMsgHandler)
 		ConnID:     connID,
 		MsgHandler: handler,
 		isClosed:   false,
+		msgChan:    make(chan []byte),
 		ExitChan:   make(chan bool, 1),
 	}
 	return c
+}
+
+// 写消息
+func (c *Connection) StartWriter() {
+	fmt.Println("writer groutine is running")
+
+	for {
+		select {
+		case data := <-c.msgChan:
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("send data error ", err)
+				return
+			}
+		case <-c.ExitChan:
+			return
+		}
+	}
 }
 
 // 链接的读业务方法
@@ -85,10 +104,7 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	}
 
 	// 将数据发送给客户端
-	if _, err := c.Conn.Write(binaryMsg); err != nil {
-		fmt.Println("write msg id =", msgId, err)
-		return errors.New("conn write error")
-	}
+	c.msgChan <- binaryMsg
 
 	return nil
 }
@@ -98,6 +114,7 @@ func (c *Connection) Start() {
 	fmt.Println("conn start()... connId=", c.ConnID)
 
 	go c.StartReader()
+	go c.StartWriter()
 }
 
 // 停止链接
@@ -111,7 +128,12 @@ func (c *Connection) Stop() {
 
 	// 关闭socket链接
 	c.Conn.Close()
+
+	c.ExitChan <- true
+
+	// 回收资源
 	close(c.ExitChan)
+	close(c.msgChan)
 }
 
 // 获取当前链接绑定的socket conn
