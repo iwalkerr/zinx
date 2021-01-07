@@ -88,7 +88,7 @@ func TestDataPack(t *testing.T) {
 	// 两个包拼接在一起
 	sendData1 = append(sendData1, sendData2...)
 
-	conn.Write(sendData1)
+	_, _ = conn.Write(sendData1)
 
 	select {}
 }

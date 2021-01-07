@@ -15,6 +15,8 @@ type globalObj struct {
 	Version        string
 	MaxConn        int    // 运行最大链接数
 	MaxPackageSize uint32 // 当前zinx框架数据包的最大值
+	WorkerPoolSize uint32 // 工作池的数量 gorountine数量
+	MaxWorkTaskLen uint32 // 允许用户最多开辟多少个worker
 }
 
 // 全局
@@ -42,7 +44,9 @@ func init() {
 		TcpPort:        8999,
 		MaxConn:        10000,
 		MaxPackageSize: 4096,
+		WorkerPoolSize: 10,
+		MaxWorkTaskLen: 1024,
 	}
 
-	// GlobalObject.Reload()
+	GlobalObject.Reload()
 }
