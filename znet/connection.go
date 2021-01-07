@@ -121,6 +121,9 @@ func (c *Connection) Start() {
 
 	go c.StartReader()
 	go c.StartWriter()
+
+	// hook函数
+	c.TcpServer.CallOnConnStart(c)
 }
 
 // 停止链接
@@ -131,6 +134,9 @@ func (c *Connection) Stop() {
 		return
 	}
 	c.isClosed = true
+
+	// hook函数
+	c.TcpServer.CallOnConnStop(c)
 
 	// 关闭socket链接
 	c.Conn.Close()

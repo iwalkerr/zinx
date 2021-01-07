@@ -8,12 +8,14 @@ import (
 )
 
 type Server struct {
-	Name       string // 服务器名称
-	IPVersion  string // 服务器绑定ip版本
-	IP         string // 服务器绑定的ip
-	Port       int    // 服务器监听的端口
-	MsgHandler ziface.IMsgHandler
-	ConnMgr    ziface.IConnManager
+	Name        string // 服务器名称
+	IPVersion   string // 服务器绑定ip版本
+	IP          string // 服务器绑定的ip
+	Port        int    // 服务器监听的端口
+	MsgHandler  ziface.IMsgHandler
+	ConnMgr     ziface.IConnManager
+	OnConnStart func(conn ziface.IConnection)
+	OnConnStop  func(conn ziface.IConnection)
 }
 
 // 启动服务器
@@ -102,4 +104,26 @@ func NewServer(name string) ziface.IServer {
 		ConnMgr:    NewConnManager(),
 	}
 	return s
+}
+
+func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
+	s.OnConnStart = hookFunc
+}
+
+func (s *Server) SetOnConnStop(hookFun func(ziface.IConnection)) {
+	s.OnConnStop = hookFun
+}
+
+func (s *Server) CallOnConnStart(conn ziface.IConnection) {
+	if s.OnConnStart != nil {
+		fmt.Println("---   CallOnConnStart")
+		s.OnConnStart(conn)
+	}
+}
+
+func (s *Server) CallOnConnStop(conn ziface.IConnection) {
+	if s.OnConnStop != nil {
+		fmt.Println("----  CallOnConnStop")
+		s.OnConnStop(conn)
+	}
 }

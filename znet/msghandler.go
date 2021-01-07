@@ -56,10 +56,8 @@ func (m *MsgHandler) StartWorkerPool() {
 // 启动一个工作流程
 func (m *MsgHandler) startOneWorker(workerId int, taskQueue chan ziface.IRequest) {
 	for {
-		select {
-		case request := <-taskQueue:
-			m.DoMsgHandler(request)
-		}
+		request := <-taskQueue
+		m.DoMsgHandler(request)
 	}
 }
 

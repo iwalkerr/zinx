@@ -7,4 +7,9 @@ type IServer interface {
 	Serve()                                 // 运行服务
 	AddRouter(msgId uint32, router IRouter) // 注册路由功能
 	GetConnMgr() IConnManager
+
+	SetOnConnStart(func(IConnection))
+	SetOnConnStop(func(IConnection))
+	CallOnConnStart(connection IConnection)
+	CallOnConnStop(connection IConnection)
 }
