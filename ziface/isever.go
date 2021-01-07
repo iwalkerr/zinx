@@ -6,4 +6,5 @@ type IServer interface {
 	Stop()                                  // 停止服务
 	Serve()                                 // 运行服务
 	AddRouter(msgId uint32, router IRouter) // 注册路由功能
+	GetConnMgr() IConnManager
 }

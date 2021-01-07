@@ -10,6 +10,7 @@ import (
 )
 
 type Connection struct {
+	TcpServer  ziface.IServer
 	Conn       *net.TCPConn // 当前链接的socket TCP套接字
 	ConnID     uint32       // 链接ID
 	isClosed   bool         // 当前链接状态
@@ -19,8 +20,9 @@ type Connection struct {
 }
 
 // 初始化链接模块方法
-func NewConnection(conn *net.TCPConn, connID uint32, handler ziface.IMsgHandler) *Connection {
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, handler ziface.IMsgHandler) *Connection {
 	c := &Connection{
+		TcpServer:  server,
 		Conn:       conn,
 		ConnID:     connID,
 		MsgHandler: handler,
@@ -28,6 +30,9 @@ func NewConnection(conn *net.TCPConn, connID uint32, handler ziface.IMsgHandler)
 		msgChan:    make(chan []byte),
 		ExitChan:   make(chan bool, 1),
 	}
+
+	c.TcpServer.GetConnMgr().Add(c)
+
 	return c
 }
 
@@ -131,6 +136,8 @@ func (c *Connection) Stop() {
 	c.Conn.Close()
 
 	c.ExitChan <- true
+
+	c.TcpServer.GetConnMgr().Remove(c)
 
 	// 回收资源
 	close(c.ExitChan)
