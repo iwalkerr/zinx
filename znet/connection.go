@@ -7,16 +7,19 @@ import (
 	"gozinx/ziface"
 	"io"
 	"net"
+	"sync"
 )
 
 type Connection struct {
-	TcpServer  ziface.IServer
-	Conn       *net.TCPConn // 当前链接的socket TCP套接字
-	ConnID     uint32       // 链接ID
-	isClosed   bool         // 当前链接状态
-	ExitChan   chan bool    // 告知当前链接已经退出/停止 channnel
-	msgChan    chan []byte
-	MsgHandler ziface.IMsgHandler // 该链接处理的方法
+	TcpServer    ziface.IServer
+	Conn         *net.TCPConn // 当前链接的socket TCP套接字
+	ConnID       uint32       // 链接ID
+	isClosed     bool         // 当前链接状态
+	ExitChan     chan bool    // 告知当前链接已经退出/停止 channnel
+	msgChan      chan []byte
+	MsgHandler   ziface.IMsgHandler // 该链接处理的方法
+	property     map[string]interface{}
+	propertyLock sync.RWMutex
 }
 
 // 初始化链接模块方法
@@ -29,6 +32,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, hand
 		isClosed:   false,
 		msgChan:    make(chan []byte),
 		ExitChan:   make(chan bool, 1),
+		property:   make(map[string]interface{}),
 	}
 
 	c.TcpServer.GetConnMgr().Add(c)
@@ -163,4 +167,30 @@ func (c *Connection) GetConnID() uint32 {
 // 获取远程客户端的TCP状态 IP port
 func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
+}
+
+func (c *Connection) SetProperty(key string, value interface{}) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	c.property[key] = value
+}
+
+func (c *Connection) GetProperty(key string) (interface{}, error) {
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+
+	if value, ok := c.property[key]; ok {
+		return value, nil
+	}
+
+	return nil, errors.New("no property found")
+
+}
+
+func (c *Connection) RemoveProperty(key string) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	delete(c.property, key)
 }

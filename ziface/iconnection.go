@@ -9,6 +9,10 @@ type IConnection interface {
 	GetConnID() uint32                       // 获取当前连接模块ID
 	RemoteAddr() net.Addr                    // 获取远程客户端的TCP状态 IP port
 	SendMsg(msgId uint32, data []byte) error // 发送数据， 将数据发送给远程的客户端
+
+	SetProperty(key string, value interface{})
+	GetProperty(key string) (interface{}, error)
+	RemoveProperty(key string)
 }
 
 // 定义一个处理链接业务的方法
