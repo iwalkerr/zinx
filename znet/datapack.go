@@ -42,6 +42,7 @@ func (d *DataPack) Pack(msg ziface.IMessage) ([]byte, error) {
 }
 
 // 拆包方法
+// |datalen|msgID|
 func (d *DataPack) Unpack(binaryData []byte) (ziface.IMessage, error) {
 	dataBuf := bytes.NewReader(binaryData)
 

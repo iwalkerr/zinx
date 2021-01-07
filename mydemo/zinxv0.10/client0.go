@@ -20,6 +20,8 @@ func main() {
 	}
 
 	for {
+
+		// 封包
 		dp := znet.NewDataPack()
 		binaryMsg, err := dp.Pack(znet.NewMsgPackege(0, []byte("zonx v0.8 client0 test")))
 		if err != nil {
@@ -32,6 +34,7 @@ func main() {
 			return
 		}
 
+		// 解包
 		binaryHead := make([]byte, dp.GetHeadLen())
 		if _, err := io.ReadFull(conn, binaryHead); err != nil {
 			fmt.Println("read head error", err)
