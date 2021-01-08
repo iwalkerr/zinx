@@ -42,8 +42,6 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, hand
 
 // 写消息
 func (c *Connection) StartWriter() {
-	fmt.Println("writer groutine is running")
-
 	for {
 		select {
 		case data := <-c.msgChan:
@@ -59,16 +57,12 @@ func (c *Connection) StartWriter() {
 
 // 链接的读业务方法
 func (c *Connection) StartReader() {
-	fmt.Println("reader goroutine is running...")
-
 	defer c.Stop()
 
 	for {
 		dp := NewDataPack()
 		headData := make([]byte, dp.GetHeadLen())
-		_, err := io.ReadFull(c.GetICPConnection(), headData)
-		if err != nil {
-			fmt.Println("read msg head error")
+		if _, err := io.ReadFull(c.GetICPConnection(), headData); err != nil {
 			break
 		}
 
@@ -121,7 +115,7 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 // 启动链接
 func (c *Connection) Start() {
-	fmt.Println("conn start()... connId=", c.ConnID)
+	fmt.Println("conn start()... connId =", c.ConnID)
 
 	go c.StartReader()
 	go c.StartWriter()
@@ -132,7 +126,7 @@ func (c *Connection) Start() {
 
 // 停止链接
 func (c *Connection) Stop() {
-	fmt.Println("conn stop()... connID=", c.ConnID)
+	fmt.Println("conn stop()... connId =", c.ConnID)
 
 	if c.isClosed {
 		return

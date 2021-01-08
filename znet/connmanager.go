@@ -24,7 +24,6 @@ func (c *ConnManager) Add(conn ziface.IConnection) {
 	defer c.connLock.Unlock()
 
 	c.connections[conn.GetConnID()] = conn
-	fmt.Println("connection add on ConnManger success")
 }
 
 // 删除连接
@@ -33,7 +32,6 @@ func (c *ConnManager) Remove(conn ziface.IConnection) {
 	defer c.connLock.Unlock()
 
 	delete(c.connections, conn.GetConnID())
-	fmt.Println("remove connection success")
 }
 
 // 根据connId获取连接

@@ -1,7 +1,7 @@
 {
-    "Name": "demo server",
-    "Host": "127.0.0.1",
+    "Name": "demo",
+    "Host": "0.0.0.0",
     "TcpPort": 8999,
-    "MaxConn": 1,
-    "WorkerPoolSize": 10
+    "MaxConn": 10,
+    "WorkerPoolSize": 2
 }

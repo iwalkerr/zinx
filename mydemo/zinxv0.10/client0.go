@@ -10,9 +10,6 @@ import (
 
 // 模拟客户端
 func main() {
-	fmt.Println("client0 start ...")
-	time.Sleep(1 * time.Second)
-
 	conn, err := net.Dial("tcp", "127.0.0.1:8999")
 	if err != nil {
 		fmt.Println("client start err, exit!")
@@ -20,8 +17,7 @@ func main() {
 	}
 
 	for {
-
-		// 封包
+		// // 封包
 		dp := znet.NewDataPack()
 		binaryMsg, err := dp.Pack(znet.NewMsgPackege(0, []byte("zonx v0.8 client0 test")))
 		if err != nil {

@@ -20,8 +20,7 @@ type Server struct {
 
 // 启动服务器
 func (s *Server) Start() {
-	fmt.Printf("%+v\n", utils.GlobalObject)
-	fmt.Printf("[start] Server Listener at IP:%s, Port %d,is starting\n", s.IP, s.Port)
+	fmt.Printf("[%s] Server Listener at IP: %s, Port %d\n", s.Name, s.IP, s.Port)
 
 	go func() {
 		// 开始消息队列
@@ -36,10 +35,10 @@ func (s *Server) Start() {
 		// 2.监听这个服务地址
 		listenner, err := net.ListenTCP(s.IPVersion, addr)
 		if err != nil {
-			fmt.Println("listen ", s.IPVersion, " err ", err)
+			fmt.Printf("listen %s error,%s\n", s.IPVersion, err)
 			return
 		}
-		fmt.Println("start zinx server success, ", s.Name, " Listenning...")
+		// fmt.Printf("start zinx server success %s ,Listenning...\n", s.Name)
 		var cid uint32 = 0
 
 		// 3.阻塞等待客户端连接，处理客户端连接业务（读写）
@@ -86,7 +85,6 @@ func (s *Server) Serve() {
 
 func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
 	s.MsgHandler.AddRouter(msgId, router)
-	fmt.Println("add router success")
 }
 
 func (s *Server) GetConnMgr() ziface.IConnManager {
@@ -94,7 +92,7 @@ func (s *Server) GetConnMgr() ziface.IConnManager {
 }
 
 // 初始化Server模块方法
-func NewServer(name string) ziface.IServer {
+func NewServer() ziface.IServer {
 	s := &Server{
 		Name:       utils.GlobalObject.Name,
 		IPVersion:  "tcp4",
@@ -116,14 +114,12 @@ func (s *Server) SetOnConnStop(hookFun func(ziface.IConnection)) {
 
 func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 	if s.OnConnStart != nil {
-		fmt.Println("---   CallOnConnStart")
 		s.OnConnStart(conn)
 	}
 }
 
 func (s *Server) CallOnConnStop(conn ziface.IConnection) {
 	if s.OnConnStop != nil {
-		fmt.Println("----  CallOnConnStop")
 		s.OnConnStop(conn)
 	}
 }
